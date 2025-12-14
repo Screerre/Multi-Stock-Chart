@@ -104,7 +104,7 @@ if st.button("Générer le graphique"):
     if not dfs:
         st.error("Aucune donnée récupérée.")
     else:
-        st.subheader("📌 Tickers détectés")
+        st.subheader("Tickers détectés :")
         st.write(", ".join(tickers_detected))
 
         # Concaténer tous les DataFrames par date
