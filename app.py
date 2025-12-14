@@ -69,12 +69,11 @@ if st.button("📊 Générer le graphique"):
         tickers_detected.append(f"{ticker} ({start_date.strftime('%d/%m/%Y')})")
 
         try:
-            start_date_yf = start_date.strftime("%Y-%m-%d")
-            df = yf.download(ticker, start=start_date_yf, progress=False)
+            df = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), progress=False)
             if not df.empty:
                 # Calcul de l'évolution normalisée à 100
                 perf = 100 * df["Close"] / df["Close"].iloc[0]
-                df_perf = perf.to_frame(name=ticker)
+                df_perf = pd.DataFrame({ticker: perf})  # <-- correction ici
                 dfs.append(df_perf)
             else:
                 st.warning(f"Aucune donnée disponible pour {ticker} depuis {date_str}")
