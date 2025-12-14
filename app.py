@@ -27,7 +27,9 @@ COMPANY_TO_TICKER = {
     "bnp paribas": "BNP.PA",
     "total": "TTE.PA",
     "lvmh": "MC.PA",
-    "stmicroelectronics": "SGMR.DU"
+    "stmicroelectronics": "SGMR.DU", 
+    "infineon": "IFX.F",
+    "edenred": "OMUM.IL"
     
 }
 
