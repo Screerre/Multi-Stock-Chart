@@ -30,7 +30,8 @@ COMPANY_TO_TICKER = {
     "stmicroelectronics": "SGMR.DU", 
     "infineon": "IFX.F",
     "edenred": "OMUM.IL",
-    "cac40": "^FCHI"
+    "cac40": "^FCHI",
+    "cac 40": "^FCHI"
 }
 
 def normalize_to_ticker(user_input: str):
