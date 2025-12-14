@@ -27,6 +27,8 @@ COMPANY_TO_TICKER = {
     "bnp paribas": "BNP.PA",
     "total": "TTE.PA",
     "lvmh": "MC.PA"
+    "SX5E": "^STOXX50E",
+    
 }
 
 def normalize_to_ticker(user_input: str):
