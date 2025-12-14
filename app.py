@@ -69,9 +69,15 @@ if st.button("📊 Générer le graphique"):
         try:
             df = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), progress=False)
             if df is not None and not df.empty and "Close" in df.columns:
+                # forcer en Series avec squeeze
+                close_series = df["Close"].squeeze()
                 # Normaliser à 100
-                perf = 100 * df["Close"] / df["Close"].iloc[0]
-                df_perf = perf.to_frame(name=ticker)  # <-- CORRECTION ICI
+                perf = 100 * close_series / close_series.iloc[0]
+                # Convertir en DataFrame si ce n'est pas déjà
+                if isinstance(perf, pd.Series):
+                    df_perf = perf.to_frame(name=ticker)
+                else:
+                    df_perf = pd.DataFrame(perf)
                 dfs.append(df_perf)
             else:
                 st.warning(f"Aucune donnée disponible pour {ticker} depuis {date_str}")
