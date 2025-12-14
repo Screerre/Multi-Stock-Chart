@@ -6,11 +6,11 @@ from datetime import datetime
 
 # ---------------- CONFIG PAGE ----------------
 st.set_page_config(
-    page_title="Comparateur de Sous-Jacents",
+    page_title="Comparateur de Performance",
     layout="wide"
 )
 
-st.title("<Comparateur de sous-jacents>")
+st.title("📈 Comparateur de performance des sous-jacents")
 st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** et leurs dates de début (DD/MM/YYYY)")
 
 # ---------------- DICTIONNAIRE NOM → TICKER ----------------
@@ -50,7 +50,7 @@ for i in range(nb_sj):
     date_str = st.text_input(f"Sous-jacent {i+1} - Date de début (DD/MM/YYYY)", key=f"date{i}", placeholder="ex: 01/01/2020")
     sous_jacents[i] = {"input": name, "date_str": date_str}
 
-if st.button("Générer le graphique"):
+if st.button("📊 Générer le graphique"):
     dfs = []
     tickers_detected = []
 
@@ -72,9 +72,10 @@ if st.button("Générer le graphique"):
             start_date_yf = start_date.strftime("%Y-%m-%d")
             df = yf.download(ticker, start=start_date_yf, progress=False)
             if not df.empty:
-                # Garder uniquement la colonne Close et renommer en ticker
-                df_ticker = df[["Close"]].rename(columns={"Close": ticker})
-                dfs.append(df_ticker)
+                # Calcul de l'évolution normalisée à 100
+                perf = 100 * df["Close"] / df["Close"].iloc[0]
+                df_perf = perf.to_frame(name=ticker)
+                dfs.append(df_perf)
             else:
                 st.warning(f"Aucune donnée disponible pour {ticker} depuis {date_str}")
         except Exception as e:
@@ -83,22 +84,22 @@ if st.button("Générer le graphique"):
     if not dfs:
         st.error("Aucune donnée récupérée.")
     else:
-        st.subheader("- Tickers détectés -")
+        st.subheader("📌 Tickers détectés")
         st.write(", ".join(tickers_detected))
 
         # Concaténer tous les DataFrames par date
-        df_prices = pd.concat(dfs, axis=1)
+        df_perf_all = pd.concat(dfs, axis=1)
 
         # ---------------- GRAPH ----------------
         fig, ax = plt.subplots(figsize=(12, 5))
-        for col in df_prices.columns:
-            ax.plot(df_prices.index, df_prices[col], label=col)
+        for col in df_perf_all.columns:
+            ax.plot(df_perf_all.index, df_perf_all[col], label=col)
 
-        ax.set_title("Évolution des sous-jacents")
+        ax.set_title("Performance relative des sous-jacents (100 = date de début)")
         ax.set_xlabel("Date")
-        ax.set_ylabel("Prix")
+        ax.set_ylabel("Indice de performance")
         ax.legend()
         ax.grid(True)
 
         st.pyplot(fig)
-        st.success("")
+        st.success("Graphique généré avec succès ✅")
