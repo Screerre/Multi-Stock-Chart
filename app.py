@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # ---------------- CONFIG PAGE ----------------
 st.set_page_config(
@@ -11,10 +11,9 @@ st.set_page_config(
 )
 
 st.title("📈 Comparateur de sous-jacents")
-st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** (un par ligne)")
+st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN**")
 
 # ---------------- DICTIONNAIRE NOM → TICKER ----------------
-# (tu peux l’enrichir avec le temps)
 COMPANY_TO_TICKER = {
     "nvidia": "NVDA",
     "apple": "AAPL",
@@ -31,69 +30,56 @@ COMPANY_TO_TICKER = {
 }
 
 def normalize_to_ticker(user_input: str):
-    """Convertit nom / ticker / isin vers un ticker Yahoo"""
     x = user_input.strip().lower()
-
-    # Si c'est dans le dictionnaire
     if x in COMPANY_TO_TICKER:
         return COMPANY_TO_TICKER[x]
-
-    # Sinon on suppose que c'est déjà un ticker Yahoo
     return user_input.strip().upper()
 
 # ---------------- INTERFACE ----------------
-inputs = st.text_area(
-    "Sous-jacents (un par ligne)",
-    height=150,
-    placeholder="Ex:\nNvidia\nAAPL\nBNP.PA\nTesla"
-)
+nb_sj = st.number_input("Nombre de sous-jacents", min_value=1, max_value=10, value=2)
 
-start_date = st.date_input(
-    "Date de début",
-    value=datetime(2020, 1, 1)
-)
+sous_jacents = {}
+for i in range(nb_sj):
+    name = st.text_input(f"Sous-jacent {i+1} - Nom / Ticker / ISIN", key=f"ticker{i}")
+    date = st.date_input(f"Sous-jacent {i+1} - Date", key=f"date{i}")
+    sous_jacents[i] = {"input": name, "date": date}
 
 if st.button("📊 Générer le graphique"):
-    if not inputs.strip():
-        st.warning("Veuillez entrer au moins un sous-jacent.")
+    data = {}
+    tickers_detected = []
+
+    for i in range(nb_sj):
+        user_input = sous_jacents[i]["input"]
+        date = sous_jacents[i]["date"]
+        if not user_input:
+            continue
+        ticker = normalize_to_ticker(user_input)
+        tickers_detected.append(ticker)
+        try:
+            df = yf.download(ticker, start=date, end=date + timedelta(days=1), progress=False)
+            if not df.empty:
+                data[ticker] = pd.Series([df["Close"].iloc[0]], index=[date])
+        except Exception:
+            st.warning(f"Impossible de récupérer {ticker}")
+
+    if not data:
+        st.error("Aucune donnée récupérée.")
     else:
-        tickers_raw = [x for x in inputs.split("\n") if x.strip()]
-        tickers = [normalize_to_ticker(x) for x in tickers_raw]
-
         st.subheader("📌 Tickers détectés")
-        st.write(", ".join(tickers))
+        st.write(", ".join(tickers_detected))
 
-        data = {}
+        df_prices = pd.DataFrame(data)
 
-        for ticker in tickers:
-            try:
-                df = yf.download(
-                    ticker,
-                    start=start_date,
-                    progress=False
-                )
-                if not df.empty:
-                    data[ticker] = df["Close"]
-            except Exception:
-                pass
+        # ---------------- GRAPH ----------------
+        fig, ax = plt.subplots(figsize=(12, 5))
+        for col in df_prices.columns:
+            ax.plot(df_prices.index, df_prices[col], marker='o', label=col)
 
-        if not data:
-            st.error("Aucune donnée récupérée.")
-        else:
-            df_prices = pd.DataFrame(data)
+        ax.set_title("Évolution des sous-jacents")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Prix")
+        ax.legend()
+        ax.grid(True)
 
-            # ---------------- GRAPH ----------------
-            fig, ax = plt.subplots(figsize=(12, 5))
-
-            for col in df_prices.columns:
-                ax.plot(df_prices.index, df_prices[col], label=col)
-
-            ax.set_title("Évolution des sous-jacents")
-            ax.set_xlabel("Date")
-            ax.set_ylabel("Prix")
-            ax.legend()
-            ax.grid(True)
-
-            st.pyplot(fig)
-
-            st.success("Graphique généré avec succès ✅")
+        st.pyplot(fig)
+        st.success("Graphique généré avec succès ✅")
