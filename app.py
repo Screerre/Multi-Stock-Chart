@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Comparateur de performance des sous-jacents")
+st.title("📈 Comparateur de performance des sous-jacents")
 st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** et leurs dates de début (DD/MM/YYYY)")
 
 # ---------------- DICTIONNAIRE NOM → TICKER ----------------
@@ -71,7 +71,7 @@ if st.button("📊 Générer le graphique"):
             if df is not None and not df.empty and "Close" in df.columns:
                 # Normaliser à 100
                 perf = 100 * df["Close"] / df["Close"].iloc[0]
-                df_perf = pd.DataFrame({ticker: perf}, index=df.index)
+                df_perf = perf.to_frame(name=ticker)  # <-- CORRECTION ICI
                 dfs.append(df_perf)
             else:
                 st.warning(f"Aucune donnée disponible pour {ticker} depuis {date_str}")
