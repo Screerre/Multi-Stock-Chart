@@ -105,4 +105,3 @@ if st.button("📊 Générer le graphique"):
         ax.grid(True)
 
         st.pyplot(fig)
-        st.success("Graphique généré avec succès ✅")
