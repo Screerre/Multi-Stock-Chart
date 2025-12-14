@@ -26,8 +26,8 @@ COMPANY_TO_TICKER = {
     "bnp": "BNP.PA",
     "bnp paribas": "BNP.PA",
     "total": "TTE.PA",
-    "lvmh": "MC.PA"
-    "SX5E": "^STOXX50E",
+    "lvmh": "MC.PA",
+    "SX5E": "^STOXX50E"
     
 }
 
