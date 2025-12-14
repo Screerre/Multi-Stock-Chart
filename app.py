@@ -31,9 +31,7 @@ COMPANY_TO_TICKER = {
 
 def normalize_to_ticker(user_input: str):
     x = user_input.strip().lower()
-    if x in COMPANY_TO_TICKER:
-        return COMPANY_TO_TICKER[x]
-    return user_input.strip().upper()
+    return COMPANY_TO_TICKER.get(x, user_input.strip().upper())
 
 def parse_date(date_str):
     try:
@@ -70,10 +68,10 @@ if st.button("📊 Générer le graphique"):
 
         try:
             df = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), progress=False)
-            if not df.empty:
-                # Calcul de l'évolution normalisée à 100
+            if df is not None and not df.empty and "Close" in df.columns:
+                # Normaliser à 100
                 perf = 100 * df["Close"] / df["Close"].iloc[0]
-                df_perf = pd.DataFrame({ticker: perf})  # <-- correction ici
+                df_perf = pd.DataFrame({ticker: perf}, index=df.index)
                 dfs.append(df_perf)
             else:
                 st.warning(f"Aucune donnée disponible pour {ticker} depuis {date_str}")
