@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📈 Comparateur de performance des sous-jacents")
+st.title("<Comparateur de performance des sous-jacents>")
 st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** et leurs dates de début (DD/MM/YYYY)")
 
 # ---------------- DICTIONNAIRE NOM → TICKER ----------------
@@ -65,7 +65,7 @@ for i in range(nb_sj):
     date_str = st.text_input(f"Sous-jacent {i+1} - Date de début (DD/MM/YYYY)", key=f"date{i}", placeholder="ex: 01/01/2020")
     sous_jacents[i] = {"input": name, "date_str": date_str}
 
-if st.button("📊 Générer le graphique"):
+if st.button("- Générer le graphique -"):
     dfs = []
     tickers_detected = []
 
