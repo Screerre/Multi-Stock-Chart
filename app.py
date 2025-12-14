@@ -42,7 +42,7 @@ COMPANY_TO_TICKER = {
     "ftse100": "^FTSE",
     "ftse 100": "^FTSE",
     "nasdaq": "^IXIC",
-    "axa": "^CS.PA"
+    "axa": "^CS.PA",
     
 }
 
