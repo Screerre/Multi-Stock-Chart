@@ -46,7 +46,7 @@ for i in range(nb_sj):
 
 if st.button("📊 Générer le graphique"):
     data = {}
-    tickers_detected = []
+    tickers_detected_str = []
 
     for i in range(nb_sj):
         user_input = sous_jacents[i]["input"]
@@ -54,10 +54,11 @@ if st.button("📊 Générer le graphique"):
         if not user_input:
             continue
         ticker = normalize_to_ticker(user_input)
-        tickers_detected.append(ticker)
+        tickers_detected_str.append(f"{ticker} ({date.strftime('%d/%m/%Y')})")
         try:
             df = yf.download(ticker, start=date, end=date + timedelta(days=1), progress=False)
             if not df.empty:
+                # Valeur Close du jour, index = date
                 data[ticker] = pd.Series([df["Close"].iloc[0]], index=[date])
         except Exception:
             st.warning(f"Impossible de récupérer {ticker}")
@@ -66,9 +67,12 @@ if st.button("📊 Générer le graphique"):
         st.error("Aucune donnée récupérée.")
     else:
         st.subheader("📌 Tickers détectés")
-        st.write(", ".join(tickers_detected))
+        st.write(", ".join(tickers_detected_str))
 
         df_prices = pd.DataFrame(data)
+
+        # Optionnel : formater l'index en DD/MM/YYYY pour l'affichage du graphique
+        df_prices.index = df_prices.index.strftime('%d/%m/%Y')
 
         # ---------------- GRAPH ----------------
         fig, ax = plt.subplots(figsize=(12, 5))
