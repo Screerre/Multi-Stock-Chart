@@ -41,7 +41,9 @@ COMPANY_TO_TICKER = {
     "ftse": "^FTSE",
     "ftse100": "^FTSE",
     "ftse 100": "^FTSE",
-    "nasdaq": "^IXIC"
+    "nasdaq": "^IXIC",
+    "axa": "^CS.PA"
+    
 }
 
 def normalize_to_ticker(user_input: str):
