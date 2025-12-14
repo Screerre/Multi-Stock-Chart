@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📈 Comparateur de sous-jacents")
+st.title("<Comparateur de sous-jacents>")
 st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** et leurs dates de début (DD/MM/YYYY)")
 
 # ---------------- DICTIONNAIRE NOM → TICKER ----------------
@@ -83,7 +83,7 @@ if st.button("📊 Générer le graphique"):
     if not dfs:
         st.error("Aucune donnée récupérée.")
     else:
-        st.subheader("📌 Tickers détectés")
+        st.subheader("- Tickers détectés -")
         st.write(", ".join(tickers_detected))
 
         # Concaténer tous les DataFrames par date
@@ -101,4 +101,4 @@ if st.button("📊 Générer le graphique"):
         ax.grid(True)
 
         st.pyplot(fig)
-        st.success("Graphique généré avec succès ✅")
+        st.success("")
