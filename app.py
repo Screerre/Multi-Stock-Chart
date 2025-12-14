@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("📈 Comparateur de performance des sous-jacents")
+st.title("Comparateur de performance des sous-jacents")
 st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** et leurs dates de début (DD/MM/YYYY)")
 
 # ---------------- DICTIONNAIRE NOM → TICKER ----------------
