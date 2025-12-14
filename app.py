@@ -36,7 +36,6 @@ def normalize_to_ticker(user_input: str):
     return user_input.strip().upper()
 
 def parse_date(date_str):
-    """Convertit une date DD/MM/YYYY en datetime"""
     try:
         return datetime.strptime(date_str.strip(), "%d/%m/%Y")
     except Exception:
@@ -52,8 +51,8 @@ for i in range(nb_sj):
     sous_jacents[i] = {"input": name, "date_str": date_str}
 
 if st.button("📊 Générer le graphique"):
-    data = {}
-    tickers_detected_str = []
+    dfs = []
+    tickers_detected = []
 
     for i in range(nb_sj):
         user_input = sous_jacents[i]["input"]
@@ -61,33 +60,34 @@ if st.button("📊 Générer le graphique"):
         if not user_input or not date_str:
             continue
 
-        start_date_obj = parse_date(date_str)
-        if not start_date_obj:
+        start_date = parse_date(date_str)
+        if not start_date:
             st.warning(f"Date invalide pour le sous-jacent {i+1} ({date_str})")
             continue
 
         ticker = normalize_to_ticker(user_input)
-        tickers_detected_str.append(f"{ticker} ({start_date_obj.strftime('%d/%m/%Y')})")
+        tickers_detected.append(f"{ticker} ({start_date.strftime('%d/%m/%Y')})")
 
         try:
-            # ✅ Convertir datetime en string YYYY-MM-DD pour yfinance
-            start_date_yf = start_date_obj.strftime("%Y-%m-%d")
+            start_date_yf = start_date.strftime("%Y-%m-%d")
             df = yf.download(ticker, start=start_date_yf, progress=False)
             if not df.empty:
-                # Toujours transformer en Series avec index datetime
-                data[ticker] = pd.Series(df["Close"].values, index=df.index)
+                # Garder uniquement la colonne Close et renommer en ticker
+                df_ticker = df[["Close"]].rename(columns={"Close": ticker})
+                dfs.append(df_ticker)
             else:
                 st.warning(f"Aucune donnée disponible pour {ticker} depuis {date_str}")
-        except Exception:
-            st.warning(f"Impossible de récupérer {ticker}")
+        except Exception as e:
+            st.warning(f"Impossible de récupérer {ticker} ({e})")
 
-    if not data:
+    if not dfs:
         st.error("Aucune donnée récupérée.")
     else:
         st.subheader("📌 Tickers détectés")
-        st.write(", ".join(tickers_detected_str))
+        st.write(", ".join(tickers_detected))
 
-        df_prices = pd.DataFrame(data)
+        # Concaténer tous les DataFrames par date
+        df_prices = pd.concat(dfs, axis=1)
 
         # ---------------- GRAPH ----------------
         fig, ax = plt.subplots(figsize=(12, 5))
