@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 st.title("📈 Comparateur de sous-jacents")
-st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN**")
+st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** et leurs dates (DD/MM/YYYY)")
 
 # ---------------- DICTIONNAIRE NOM → TICKER ----------------
 COMPANY_TO_TICKER = {
@@ -35,14 +35,21 @@ def normalize_to_ticker(user_input: str):
         return COMPANY_TO_TICKER[x]
     return user_input.strip().upper()
 
+def parse_date(date_str):
+    """Convertit une date DD/MM/YYYY en datetime"""
+    try:
+        return datetime.strptime(date_str.strip(), "%d/%m/%Y")
+    except Exception:
+        return None
+
 # ---------------- INTERFACE ----------------
 nb_sj = st.number_input("Nombre de sous-jacents", min_value=1, max_value=10, value=2)
 
 sous_jacents = {}
 for i in range(nb_sj):
     name = st.text_input(f"Sous-jacent {i+1} - Nom / Ticker / ISIN", key=f"ticker{i}")
-    date = st.date_input(f"Sous-jacent {i+1} - Date", key=f"date{i}")
-    sous_jacents[i] = {"input": name, "date": date}
+    date_str = st.text_input(f"Sous-jacent {i+1} - Date (DD/MM/YYYY)", key=f"date{i}", placeholder="ex: 13/12/2025")
+    sous_jacents[i] = {"input": name, "date_str": date_str}
 
 if st.button("📊 Générer le graphique"):
     data = {}
@@ -50,16 +57,25 @@ if st.button("📊 Générer le graphique"):
 
     for i in range(nb_sj):
         user_input = sous_jacents[i]["input"]
-        date = sous_jacents[i]["date"]
-        if not user_input:
+        date_str = sous_jacents[i]["date_str"]
+        if not user_input or not date_str:
             continue
+
+        date = parse_date(date_str)
+        if not date:
+            st.warning(f"Date invalide pour le sous-jacent {i+1} ({date_str})")
+            continue
+
         ticker = normalize_to_ticker(user_input)
         tickers_detected_str.append(f"{ticker} ({date.strftime('%d/%m/%Y')})")
+
         try:
-            df = yf.download(ticker, start=date, end=date + timedelta(days=1), progress=False)
+            df = yf.download(ticker, start=date - timedelta(days=2), end=date + timedelta(days=2), progress=False)
             if not df.empty:
-                # Valeur Close du jour, index = date
-                data[ticker] = pd.Series([df["Close"].iloc[0]], index=[date])
+                # On prend le prix le plus proche de la date
+                df["diff"] = abs(df.index - date)
+                closest = df.sort_values("diff").iloc[0]
+                data[ticker] = pd.Series([closest["Close"]], index=[date])
         except Exception:
             st.warning(f"Impossible de récupérer {ticker}")
 
@@ -71,7 +87,7 @@ if st.button("📊 Générer le graphique"):
 
         df_prices = pd.DataFrame(data)
 
-        # Optionnel : formater l'index en DD/MM/YYYY pour l'affichage du graphique
+        # Formater l'index en DD/MM/YYYY pour l'affichage
         df_prices.index = df_prices.index.strftime('%d/%m/%Y')
 
         # ---------------- GRAPH ----------------
