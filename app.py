@@ -61,20 +61,23 @@ if st.button("📊 Générer le graphique"):
         if not user_input or not date_str:
             continue
 
-        start_date = parse_date(date_str)
-        if not start_date:
+        start_date_obj = parse_date(date_str)
+        if not start_date_obj:
             st.warning(f"Date invalide pour le sous-jacent {i+1} ({date_str})")
             continue
 
         ticker = normalize_to_ticker(user_input)
-        tickers_detected_str.append(f"{ticker} ({start_date.strftime('%d/%m/%Y')})")
+        tickers_detected_str.append(f"{ticker} ({start_date_obj.strftime('%d/%m/%Y')})")
 
         try:
-            # Télécharger les données depuis la date de début jusqu'à aujourd'hui
-            df = yf.download(ticker, start=start_date, progress=False)
+            # ✅ Convertir datetime en string YYYY-MM-DD pour yfinance
+            start_date_yf = start_date_obj.strftime("%Y-%m-%d")
+            df = yf.download(ticker, start=start_date_yf, progress=False)
             if not df.empty:
                 # Toujours transformer en Series avec index datetime
                 data[ticker] = pd.Series(df["Close"].values, index=df.index)
+            else:
+                st.warning(f"Aucune donnée disponible pour {ticker} depuis {date_str}")
         except Exception:
             st.warning(f"Impossible de récupérer {ticker}")
 
