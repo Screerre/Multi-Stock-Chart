@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # ---------------- CONFIG PAGE ----------------
 st.set_page_config(
@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 st.title("📈 Comparateur de sous-jacents")
-st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** et leurs dates (DD/MM/YYYY)")
+st.markdown("Entrez des **noms de compagnies, tickers Yahoo ou ISIN** et leurs dates de début (DD/MM/YYYY)")
 
 # ---------------- DICTIONNAIRE NOM → TICKER ----------------
 COMPANY_TO_TICKER = {
@@ -48,7 +48,7 @@ nb_sj = st.number_input("Nombre de sous-jacents", min_value=1, max_value=10, val
 sous_jacents = {}
 for i in range(nb_sj):
     name = st.text_input(f"Sous-jacent {i+1} - Nom / Ticker / ISIN", key=f"ticker{i}")
-    date_str = st.text_input(f"Sous-jacent {i+1} - Date (DD/MM/YYYY)", key=f"date{i}", placeholder="ex: 13/12/2025")
+    date_str = st.text_input(f"Sous-jacent {i+1} - Date de début (DD/MM/YYYY)", key=f"date{i}", placeholder="ex: 01/01/2020")
     sous_jacents[i] = {"input": name, "date_str": date_str}
 
 if st.button("📊 Générer le graphique"):
@@ -61,21 +61,19 @@ if st.button("📊 Générer le graphique"):
         if not user_input or not date_str:
             continue
 
-        date = parse_date(date_str)
-        if not date:
+        start_date = parse_date(date_str)
+        if not start_date:
             st.warning(f"Date invalide pour le sous-jacent {i+1} ({date_str})")
             continue
 
         ticker = normalize_to_ticker(user_input)
-        tickers_detected_str.append(f"{ticker} ({date.strftime('%d/%m/%Y')})")
+        tickers_detected_str.append(f"{ticker} ({start_date.strftime('%d/%m/%Y')})")
 
         try:
-            df = yf.download(ticker, start=date - timedelta(days=2), end=date + timedelta(days=2), progress=False)
+            # Télécharger les données depuis la date choisie jusqu'à aujourd'hui
+            df = yf.download(ticker, start=start_date, progress=False)
             if not df.empty:
-                # On prend le prix le plus proche de la date
-                df["diff"] = abs(df.index - date)
-                closest = df.sort_values("diff").iloc[0]
-                data[ticker] = pd.Series([closest["Close"]], index=[date])
+                data[ticker] = df["Close"]
         except Exception:
             st.warning(f"Impossible de récupérer {ticker}")
 
@@ -87,13 +85,10 @@ if st.button("📊 Générer le graphique"):
 
         df_prices = pd.DataFrame(data)
 
-        # Formater l'index en DD/MM/YYYY pour l'affichage
-        df_prices.index = df_prices.index.strftime('%d/%m/%Y')
-
         # ---------------- GRAPH ----------------
         fig, ax = plt.subplots(figsize=(12, 5))
         for col in df_prices.columns:
-            ax.plot(df_prices.index, df_prices[col], marker='o', label=col)
+            ax.plot(df_prices.index, df_prices[col], label=col)
 
         ax.set_title("Évolution des sous-jacents")
         ax.set_xlabel("Date")
