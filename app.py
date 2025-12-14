@@ -31,7 +31,17 @@ COMPANY_TO_TICKER = {
     "infineon": "IFX.F",
     "edenred": "OMUM.IL",
     "cac40": "^FCHI",
-    "cac 40": "^FCHI"
+    "cac 40": "^FCHI",
+    "cac": "^FCHI",
+    "eurostoxx": "^STOXX50E",
+    "eurostox": "^STOXX50E",
+    "sx5e": "^STOXX50E",
+    "dowjones": "^DJI",
+    "dow jones": "^DJI",
+    "ftse": "^FTSE",
+    "ftse100": "^FTSE",
+    "ftse 100": "^FTSE",
+    "nasdaq": "^IXIC"
 }
 
 def normalize_to_ticker(user_input: str):
