@@ -30,6 +30,7 @@ COMPANY_TO_TICKER = {
 }
 
 def normalize_to_ticker(user_input: str):
+    """Convertit nom / ticker / isin vers un ticker Yahoo"""
     x = user_input.strip().lower()
     if x in COMPANY_TO_TICKER:
         return COMPANY_TO_TICKER[x]
@@ -70,10 +71,10 @@ if st.button("📊 Générer le graphique"):
         tickers_detected_str.append(f"{ticker} ({start_date.strftime('%d/%m/%Y')})")
 
         try:
-            # Télécharger les données depuis la date choisie jusqu'à aujourd'hui
+            # Télécharger les données depuis la date de début jusqu'à aujourd'hui
             df = yf.download(ticker, start=start_date, progress=False)
             if not df.empty:
-                data[ticker] = df["Close"]
+                data[ticker] = df["Close"]  # Series avec index datetime
         except Exception:
             st.warning(f"Impossible de récupérer {ticker}")
 
